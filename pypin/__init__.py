@@ -4,6 +4,8 @@ import json
 import requests
 import urllib.request
 
+
+
 class PyPin(object):
     """Python client consume Pinterest API"""
     TIMEOUT = 5
@@ -107,7 +109,7 @@ class PyPin(object):
         request_url = api_endpoint + '?access_token=' + self.accesstoken
         return PyPin.call(request_url, 'delete')
 
-    def get_pins(self):
+    def get_my_pins(self):
         """Get all of authenticated users's pins"""
         api_endpoint = PyPin.API_HOST + self.api_verson +'/me/pins/'
         request_url = api_endpoint + '?access_token=' + self.accesstoken
@@ -144,3 +146,37 @@ class PyPin(object):
         api_endpoint = PyPin.API_HOST + self.api_verson +'/pins/'
         request_url = api_endpoint + '?access_token=' + self.accesstoken
         return PyPin.call(request_url, 'post', pin_info)
+
+    def get_public_pin(self, pin_id, desired_attributes=None):
+        """GET - Gets data on a pin using the /v1/pins/<pin>/ endpoint
+        available attributes:
+            ['id', 'link', 'note', 'url', 'color', 'attribution', 'board',
+                'counts', 'created_at', 'creator', 'original_link', 'media', 'image', 'metadata']
+
+            Parameters
+            ----------
+            pin_id : string
+                The id of the pin to retrieve.
+            desired_attributes : list[string], optional
+                The list of attributes to request for the associated pin.
+
+            Returns
+            -------
+            json_array
+                The response from Pinterest.
+
+            Raises
+            -------
+            RuntimeError
+                If the response code != 200, this exception will be raised along
+                with the return code of the request.
+
+        """
+        api_endpoint = PyPin.API_HOST + self.api_verson + "/pins/{:s}".format(pin_id)
+        request_url = api_endpoint + '?access_token=' + self.accesstoken
+        if desired_attributes:
+            desired_attributes = [atr + '%2C' for atr in desired_attributes]
+            request_url += "&fields={}".format(''.join(desired_attributes))
+            request_url = request_url.rstrip('%2C')
+            print(request_url)
+        return PyPin.call(request_url)
