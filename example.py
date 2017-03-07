@@ -1,11 +1,11 @@
 """client script"""
-from pypin import PyPin
+import pypin
 
-API_CLIENT = PyPin('AaCHGJ_asIYl_ii3b_gjG5Z9eVadFIM74OdBtXZDgcHF8cA-hAAAAAA')
+api = pypin.API("")
 
-print API_CLIENT.get_me()
+print (api.get_me())
 
-print API_CLIENT.get_boards()
+print (api.get_boards())
 
 # print API_CLIENT.create_board({'name': 'test3'})
 
