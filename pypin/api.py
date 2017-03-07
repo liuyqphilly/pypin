@@ -189,5 +189,5 @@ class API(object):
             desired_attributes = [atr + '%2C' for atr in desired_attributes]
             request_url += "&fields={}".format(''.join(desired_attributes))
             request_url = request_url.rstrip('%2C')
-            print(request_url)
+            # print(request_url)
         return API.call(request_url)
