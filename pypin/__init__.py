@@ -4,6 +4,8 @@ __license__ = 'MIT'
 
 from pypin.api import API
 from pypin.models import Pin
+from pypin.models import Board
+from pypin.models import User
 
 # Global, unauthenticated instance of API
 api = API()
