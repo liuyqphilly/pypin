@@ -1,3 +1,4 @@
+from collections import Iterator
 
 class JsonDataWrapper:
     '''
@@ -28,7 +29,6 @@ class Pin(JsonDataWrapper):
     '''
 
     def __init__(self, json_data):
-        super().__init__(json_data)
         # TODO: Confirm timezone of Pin._created_at.
         # TODO: Create class container for Pin._attribution. Currently <dict>.
         '''
@@ -49,6 +49,8 @@ class Pin(JsonDataWrapper):
         :param _attribution: The source data for videos, including the title, URL, provider, author name, author URL and provider name.
 
         '''
+        super().__init__(json_data)
+
         self._id = None
         self._link = None
         self._url = None
@@ -121,7 +123,6 @@ class Board(JsonDataWrapper):
     '''
 
     def __init__(self, json_data):
-        super().__init__(json_data)
         # TODO: Confirm timezone of Board._created_at.
         # TODO: Create class container for Board._image. Currently <dict>.
         '''
@@ -140,6 +141,8 @@ class Board(JsonDataWrapper):
         :param _image: The board’s profile image. The response returns the image’s URL, width and height.
 
         '''
+        super().__init__(json_data)
+
         self._counts = None
         self._created_at = None
         self._description = None
@@ -186,7 +189,6 @@ class User(JsonDataWrapper):
     '''
 
     def __init__(self, json_data):
-        super().__init__(json_data)
         # TODO: Confirm timezone of User._created_at.
         # TODO: Create class container for User._image. Currently <dict>.
         '''
@@ -206,6 +208,8 @@ class User(JsonDataWrapper):
         :param _like_count: Number of likes this user has. NOT constant.
         :param _image: The user’s profile image. The response returns the image’s URL, width and height.
         '''
+        super().__init__(json_data)
+
         self._id = None
         self._username = None
         self._first_name = None
@@ -253,4 +257,59 @@ class User(JsonDataWrapper):
 
     @property
     def image(self): return self.get('image')
+
+class BoardPins(JsonDataWrapper, Iterator):
+    '''
+    API Reference: https://developers.pinterest.com/docs/api/users/
+    '''
+
+    def __init__(self, json_data, board_id, api):
+        # TODO: Confirm timezone of User._created_at.
+        # TODO: Create class container for User._image. Currently <dict>.
+        '''
+
+        :param json_data: The json that represents this object as returned by the Pinterest API.
+        :param api: The api to be used while this BoardPins object exists.
+
+        :param _id: The id of the board the pins belong to.
+        :param _api: The api stored for this BoardPins object.
+        '''
+
+        # use a list instead
+        json_data['data'] = list(json_data['data'])
+
+        super().__init__(json_data)
+        self._id = board_id
+        self._api = api
+        self._current = 0
+        self._high = len(self.pins)
+
+    @property
+    def id(self): return self._id
+
+    @property
+    def cursor(self): return self.get('page').get('cursor')
+
+    @property
+    def pins(self): return self.get('data')
+
+    def update_contents(self, new_json):
+        self._high += len(new_json['data'])
+        self.pins.extend(list(new_json['data']))
+        self._data['page']['cursor'] = new_json['page']['cursor']
+
+    def __next__(self):
+        if self._current >= self._high:
+            if self.cursor == None:
+                raise StopIteration
+            else:
+                json_data = self._api.get_public_board_pins(self.id, self.cursor)
+                self.update_contents(json_data)
+                return self.__next__()
+        else:
+            self._current += 1
+            return Pin(self.pins[self._current - 1])
+
+
+
 

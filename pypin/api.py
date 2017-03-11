@@ -39,7 +39,7 @@ class API(object):
         request = getattr(requests, method)(url, timeout=API.TIMEOUT, data=params)
         # print (request.json())
         if request.status_code in [200, 201]:
-            return request.json()['data']
+            return request.json()
         else:
             raise RuntimeError('API request return status code '+str(request.status_code))
 
@@ -159,7 +159,7 @@ class API(object):
         request_url += "&fields={}".format(''.join(desired_attributes))
         request_url = request_url.rstrip('%2C')
         # print(request_url)
-        return pypin.User(API.call(request_url))
+        return pypin.User(API.call(request_url)['data'])
 
     def create_board(self, board_info):
         """Create a new board
@@ -211,7 +211,7 @@ class API(object):
         request_url += "&fields={}".format(''.join(desired_attributes))
         request_url = request_url.rstrip('%2C')
         # print(request_url)
-        return pypin.Pin(API.call(request_url))
+        return pypin.Pin(API.call(request_url)['data'])
 
     def get_public_board(self, board_id):
         """ Reference: https://developers.pinterest.com/docs/api/boards/
@@ -244,7 +244,7 @@ class API(object):
         # print(request_url)
 
         # build the user object, makes one call to API
-        json_data = API.call(request_url)
+        json_data = API.call(request_url)['data']
         json_data['creator'] = self.get_user(json_data['creator']['id'])
 
         return pypin.Board(json_data)
@@ -254,16 +254,10 @@ class API(object):
 
         GET - Gets all pins on a board using the /v1/boards/<board_spec:board>/pins/ endpoint
 
-        available attributes:
-            ['attribution', 'board', 'color', 'counts', 'created_at', 'creator',
-                'id', 'image', 'link', 'media', 'metadata', 'note', 'original_link', 'url']
-
         Parameters
         ----------
         board_id : string
             The id of the board to retrieve.
-        desired_attributes : list[string], optional
-            The list of attributes to request for the associated pin.
 
         Returns
         -------
@@ -278,11 +272,18 @@ class API(object):
 
         """
         desired_attributes = ['attribution', 'board', 'color', 'counts', 'created_at', 'creator',
-                'id', 'image', 'link', 'media', 'metadata', 'note', 'original_link', 'url']
-        api_endpoint = self.host + self.api_root + "/boards/{:s}/pins".format(str(board_id))
-        request_url = api_endpoint + '?access_token=' + self.access_token
+                              'id', 'image', 'link', 'media', 'metadata', 'note', 'original_link', 'url']
         desired_attributes = [atr + '%2C' for atr in desired_attributes]
+        api_endpoint = self.host + self.api_root + "/boards/{:s}/pins".format(str(board_id))
+        if cursor:
+            request_url = "{}?cursor={}&access_token={}".format(api_endpoint, cursor, self.access_token)
+        else:
+            request_url = "{}?access_token={}".format(api_endpoint, self.access_token)
         request_url += "&fields={}".format(''.join(desired_attributes))
         request_url = request_url.rstrip('%2C')
         # print(request_url)
-        return API.call(request_url)
+        if cursor:
+            return API.call(request_url)
+        else:
+            return pypin.BoardPins(API.call(request_url), board_id, self)
+

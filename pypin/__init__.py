@@ -6,6 +6,7 @@ from pypin.api import API
 from pypin.models import Pin
 from pypin.models import Board
 from pypin.models import User
+from pypin.models import BoardPins
 
 # Global, unauthenticated instance of API
 api = API()
