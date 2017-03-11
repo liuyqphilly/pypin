@@ -1,6 +1,7 @@
 import json
 import requests
 import urllib.request
+import pypin
 
 class API(object):
     """Pinterest API"""
@@ -160,30 +161,103 @@ class API(object):
     def get_public_pin(self, pin_id, desired_attributes=None):
         """GET - Gets data on a pin using the /v1/pins/<pin>/ endpoint
         available attributes:
-            ['id', 'link', 'note', 'url', 'color', 'attribution', 'board',
-                'counts', 'created_at', 'creator', 'original_link', 'media', 'image', 'metadata']
+            ['attribution', 'board', 'color', 'counts', 'created_at', 'creator',
+                'id', 'image', 'link', 'media', 'metadata', 'note', 'original_link', 'url']
 
+        Parameters
+        ----------
+        pin_id : string
+            The id of the pin to retrieve.
+        desired_attributes : list[string], optional
+            The list of attributes to request for the associated pin.
 
-            Parameters
-            ----------
-            pin_id : string
-                The id of the pin to retrieve.
-            desired_attributes : list[string], optional
-                The list of attributes to request for the associated pin.
+        Returns
+        -------
+        json_array
+            The response from Pinterest.
 
-            Returns
-            -------
-            json_array
-                The response from Pinterest.
-
-            Raises
-            -------
-            RuntimeError
-                If the response code != 200, this exception will be raised along
-                with the return code of the request.
+        Raises
+        -------
+        RuntimeError
+            If the response code != 200, this exception will be raised along
+            with the return code of the request.
 
         """
         api_endpoint = self.host + self.api_root + "/pins/{:s}".format(pin_id)
+        request_url = api_endpoint + '?access_token=' + self.access_token
+        if desired_attributes:
+            desired_attributes = [atr + '%2C' for atr in desired_attributes]
+            request_url += "&fields={}".format(''.join(desired_attributes))
+            request_url = request_url.rstrip('%2C')
+            # print(request_url)
+        return pypin.Pin(API.call(request_url))
+
+    def get_public_board(self, board_id, desired_attributes=None):
+        """ Reference: https://developers.pinterest.com/docs/api/boards/
+
+        GET - Gets all pins on a board using the /v1/boards/<board_spec:board>/pins/ endpoint
+
+        available attributes:
+            ['counts', 'created_at', 'creator', 'description', 'id', 'image', 'name', 'url']
+
+
+        Parameters
+        ----------
+        board_id : string
+            The id of the board to retrieve.
+        desired_attributes : list[string], optional
+            The list of attributes to request for the associated pin.
+
+        Returns
+        -------
+        json_array
+            The response from Pinterest.
+
+        Raises
+        -------
+        RuntimeError
+            If the response code != 200, this exception will be raised along
+            with the return code of the request.
+
+        """
+        api_endpoint = self.host + self.api_root + "/boards/{:s}".format(board_id)
+        request_url = api_endpoint + '?access_token=' + self.access_token
+        if desired_attributes:
+            desired_attributes = [atr + '%2C' for atr in desired_attributes]
+            request_url += "&fields={}".format(''.join(desired_attributes))
+            request_url = request_url.rstrip('%2C')
+            # print(request_url)
+        return API.call(request_url)
+
+    def get_public_board_pins(self, board_id, cursor=None, desired_attributes=None):
+        """ Reference: https://developers.pinterest.com/docs/api/boards/
+
+        GET - Gets all pins on a board using the /v1/boards/<board_spec:board>/pins/ endpoint
+
+        available attributes:
+            ['attribution', 'board', 'color', 'counts', 'created_at', 'creator',
+                'id', 'image', 'link', 'media', 'metadata', 'note', 'original_link', 'url']
+
+        Parameters
+        ----------
+        board_id : string
+            The id of the board to retrieve.
+        desired_attributes : list[string], optional
+            The list of attributes to request for the associated pin.
+
+        Returns
+        -------
+        json_array
+            The response from Pinterest.
+
+        Raises
+        -------
+        RuntimeError
+            If the response code != 200, this exception will be raised along
+            with the return code of the request.
+
+        """
+        api_endpoint = self.host + self.api_root + "/boards/{:s}/pins".format(str(board_id))
         request_url = api_endpoint + '?access_token=' + self.access_token
         if desired_attributes:
             desired_attributes = [atr + '%2C' for atr in desired_attributes]
