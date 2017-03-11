@@ -229,7 +229,7 @@ class API(object):
             # print(request_url)
         return API.call(request_url)
 
-    def get_public_board_pins(self, board_id, cursor=None, desired_attributes=None):
+    def get_public_board_pins(self, board_id, cursor=None):
         """ Reference: https://developers.pinterest.com/docs/api/boards/
 
         GET - Gets all pins on a board using the /v1/boards/<board_spec:board>/pins/ endpoint
@@ -257,11 +257,12 @@ class API(object):
             with the return code of the request.
 
         """
+        desired_attributes = ['attribution', 'board', 'color', 'counts', 'created_at', 'creator',
+                'id', 'image', 'link', 'media', 'metadata', 'note', 'original_link', 'url']
         api_endpoint = self.host + self.api_root + "/boards/{:s}/pins".format(str(board_id))
         request_url = api_endpoint + '?access_token=' + self.access_token
-        if desired_attributes:
-            desired_attributes = [atr + '%2C' for atr in desired_attributes]
-            request_url += "&fields={}".format(''.join(desired_attributes))
-            request_url = request_url.rstrip('%2C')
-            # print(request_url)
+        desired_attributes = [atr + '%2C' for atr in desired_attributes]
+        request_url += "&fields={}".format(''.join(desired_attributes))
+        request_url = request_url.rstrip('%2C')
+        # print(request_url)
         return API.call(request_url)

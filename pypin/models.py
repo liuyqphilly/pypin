@@ -104,9 +104,13 @@ class Pin(JsonDataWrapper):
     def image(self): return self.get('image')
 
     @property
-    def counts(self): return self.get('counts')
+    def repin_count(self): return self.get('counts').get('repins')
+
+    @property
+    def comment_count(self): return self.get('counts').get('comments')
+
+    @property
+    def like_count(self): return self.get('counts').get('likes')
 
     @property
     def metadata(self): return self.get('metadata')
-
-
