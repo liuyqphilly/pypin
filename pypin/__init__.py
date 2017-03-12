@@ -9,6 +9,7 @@ from pypin.models import User
 from pypin.models import BoardPins
 from pypin.models import BoardPinsV3
 from pypin.models import PinV3
+import pypin.exceptions as exceptions
 
 # Global, unauthenticated instance of API
 api = API()
