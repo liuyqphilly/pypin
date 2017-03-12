@@ -8,7 +8,7 @@ class API(object):
 
     TIMEOUT = 20
 
-    def __init__(self, access_token=None,
+    def __init__(self, access_token=None, v3_access_token=None,
                  host='https://api.pinterest.com', api_root='/v1',
                  wait_on_rate_limit=False, wait_on_rate_limit_notify=False):
         """ Api instance Constructor
@@ -20,6 +20,7 @@ class API(object):
         :param wait_on_rate_limit_notify: If the api print a notification when the rate limit is hit, default:False
         """
         self.access_token = access_token
+        self.v3_access_token = v3_access_token
         self.api_root = api_root
         self.host = host
         self.wait_on_rate_limit = wait_on_rate_limit
@@ -287,3 +288,25 @@ class API(object):
         else:
             return pypin.BoardPins(API.call(request_url), board_id, self)
 
+    def get_public_board_pins_v3(self, board_id, bookmark=None, page_size=50):
+        '''
+        EXPERIMENTAL
+
+        Uses the API v3 endpoint to get the pins on a board. More flexible than v1 because of higher request
+        limits and the ability to return up to 250 pins per request.
+
+        :param board_id:
+        :param bookmark: Bookmark of the request for pagination.
+        :return:
+        '''
+        if not self.v3_access_token:
+            raise RuntimeError('API v3 token not provided to API client! Cannot use this method (get_public_board_pins_v3).')
+
+        api_endpoint = "{}/{}/boards/{}/pins/".format(self.host, 'v3', board_id)
+        # print(api_endpoint)
+        if bookmark:
+            request_url = "{}?page_size={}&bookmark={}&access_token={}".format(api_endpoint, page_size, bookmark, self.v3_access_token)
+            return API.call(request_url)
+        else:
+            request_url = "{}?page_size={}&access_token={}".format(api_endpoint, page_size, self.v3_access_token)
+            return pypin.BoardPinsV3(API.call(request_url), board_id, self)

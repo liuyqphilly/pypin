@@ -301,6 +301,8 @@ class BoardPins(JsonDataWrapper, Iterator):
     def __next__(self):
         if self._current >= self._high:
             if self.cursor == None:
+                # reset current so the user can iterate over the pins again
+                self._current = 0
                 raise StopIteration
             else:
                 json_data = self._api.get_public_board_pins(self.id, self.cursor)
@@ -310,6 +312,56 @@ class BoardPins(JsonDataWrapper, Iterator):
             self._current += 1
             return Pin(self.pins[self._current - 1])
 
+class BoardPinsV3(JsonDataWrapper, Iterator):
+    '''
+    API Reference: https://developers.pinterest.com/docs/api/users/
+    '''
 
+    def __init__(self, json_data, board_id, api):
+        # TODO: Confirm timezone of User._created_at.
+        # TODO: Create class container for User._image. Currently <dict>.
+        '''
 
+        :param json_data: The json that represents this object as returned by the Pinterest API.
+        :param api: The api to be used while this BoardPins object exists.
 
+        :param _id: The id of the board the pins belong to.
+        :param _api: The api stored for this BoardPins object.
+        '''
+
+        # use a list instead
+        # json_data['data'] = list(json_data['data'])
+
+        super().__init__(json_data)
+        self._id = board_id
+        self._api = api
+        self._current = 0
+        self._high = len(self.pins)
+
+    @property
+    def id(self): return self._id
+
+    @property
+    def bookmark(self): return self.get('bookmark')
+
+    @property
+    def pins(self): return self.get('data')
+
+    def update_contents(self, new_json):
+        self._high += len(new_json['data'])
+        self.pins.extend(list(new_json['data']))
+        self._data['bookmark']= new_json.get('bookmark', None)
+
+    def __next__(self):
+        if self._current >= self._high:
+            if self.bookmark == None:
+                # reset current so the user can iterate over the pins again
+                self._current = 0
+                raise StopIteration
+            else:
+                json_data = self._api.get_public_board_pins_v3(self.id, self.bookmark)
+                self.update_contents(json_data)
+                return self.__next__()
+        else:
+            self._current += 1
+            return self.pins[self._current - 1]
