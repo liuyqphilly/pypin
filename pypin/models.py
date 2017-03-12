@@ -301,6 +301,8 @@ class BoardPins(JsonDataWrapper, Iterator):
     def __next__(self):
         if self._current >= self._high:
             if self.cursor == None:
+                # reset current so the user can iterate over the pins again
+                self._current = 0
                 raise StopIteration
             else:
                 json_data = self._api.get_public_board_pins(self.id, self.cursor)
