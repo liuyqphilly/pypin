@@ -310,3 +310,62 @@ class API(object):
         else:
             request_url = "{}?page_size={}&access_token={}".format(api_endpoint, page_size, self.v3_access_token)
             return pypin.BoardPinsV3(API.call(request_url), board_id, self)
+
+
+    def get_public_pin_v3(self, pin_id):
+        """GET - Gets data on a pin using the /v3/pins/<pin>/ endpoint
+
+        EXPERIMENTAL
+
+        Uses the API v3 endpoint to get the pin. More flexible than v1 because of higher request limits and more data.
+
+        Parameters
+        ----------
+        pin_id : string
+            The id of the pin to retrieve.
+
+        Returns
+        -------
+        json_array
+            The response from Pinterest.
+
+        Raises
+        -------
+        RuntimeError
+            If the response code != 200, this exception will be raised along
+            with the return code of the request.
+
+        """
+        if not self.v3_access_token:
+            raise RuntimeError('API v3 token not provided to API client! Cannot use this method (get_public_board_pins_v3).')
+
+        api_endpoint = "{}/{}/pins/{}/".format(self.host, 'v3', pin_id)
+        request_url = "{}?access_token={}".format(api_endpoint, self.v3_access_token)
+        # print(request_url)
+        return pypin.PinV3(API.call(request_url)['data'])
+
+    def get_user_v3(self, user_id):
+        """GET - Gets data on a user using the /api_version/users/<user>/ endpoint
+
+        Parameters
+        ----------
+        user_id : string
+            The id of the user to retrieve.
+
+        Returns
+        -------
+        json_array
+            The response from Pinterest.
+
+        Raises
+        -------
+        RuntimeError
+            If the response code != 200, this exception will be raised along
+            with the return code of the request.
+
+        """
+        api_endpoint = "{}/{}/users/{}/".format(self.host, 'v3', user_id)
+        request_url = "{}?access_token={}".format(api_endpoint, self.v3_access_token)
+        # print(request_url)
+        # TODO: Make model
+        return API.call(request_url)['data']

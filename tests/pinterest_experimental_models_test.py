@@ -28,6 +28,20 @@ class TestBoardPinsV3Model(unittest.TestCase):
         self.assertEqual(c, self.api.get_public_board(self.board_pins.id).pin_count,
                          msg='Iter should loop over the number of pins on the board.')
 
+class TestPinsV3Model(unittest.TestCase):
+
+    def setUp(self):
+        # TODO: Don't use a live pin request between each test, store in cassete and make sure it
+        # matches the one that comes back from the api in another test so we only make one request.
+        self.api = pypin.API(os.environ['PIN_TOKEN'], os.environ['PIN_V3_TOKEN'])
+        self.pin = self.api.get_public_pin_v3('442830575846619266')
+
+    def test_constructor(self):
+        # TODO: Remove the hardcoded sample Pin and use some sort of cassettes.
+        self.assertIsInstance(self.pin, pypin.PinV3, msg='pin should be type pypin.models.PinV3')
+
+    def test_board_pins_id_getter(self):
+        self.assertIsNotNone(self.pin.id, msg='pin id should be initialized.')
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,4 +1,5 @@
 from collections import Iterator
+from datetime import datetime
 
 class JsonDataWrapper:
     '''
@@ -49,6 +50,7 @@ class Pin(JsonDataWrapper):
         :param _attribution: The source data for videos, including the title, URL, provider, author name, author URL and provider name.
 
         '''
+        json_data['created_at'] = datetime.strptime(json_data['created_at'], '%Y-%m-%dT%H:%M:%S')
         super().__init__(json_data)
 
         self._id = None
@@ -67,6 +69,8 @@ class Pin(JsonDataWrapper):
         self._repin_count = None
         self._comment_count = None
         self._like_count = None
+
+        self._original_link = None
 
     @property
     def id(self): return self.get('id')
@@ -342,7 +346,10 @@ class BoardPinsV3(JsonDataWrapper, Iterator):
     def id(self): return self._id
 
     @property
-    def bookmark(self): return self.get('bookmark')
+    def bookmark(self):
+        if 'bookmark' not in self._data:
+            return None
+        return self.get('bookmark')
 
     @property
     def pins(self): return self.get('data')
@@ -365,3 +372,93 @@ class BoardPinsV3(JsonDataWrapper, Iterator):
         else:
             self._current += 1
             return self.pins[self._current - 1]
+
+class PinV3(JsonDataWrapper):
+    '''
+    API Reference: https://developers.pinterest.com/docs/api/pins/?
+    '''
+
+    def __init__(self, json_data):
+        # TODO: Confirm timezone of Pin._created_at.
+        # TODO: Create class container for Pin._attribution. Currently <dict>.
+        '''
+
+        :param json_data: The json that represents this object as returned by the Pinterest API.
+
+        :param _id: The unique string of numbers and letters that identifies the Pin on Pinterest.
+        :param _link: Hyperlink to the pin.
+        :param _url: The URL of the Pin on Pinterest.
+        :param _creator: Pinterest id of the user who made the pin.
+        :param _board: Pinterest Board id this pin belongs to.
+        :param _created_at: The date the Pin was created. ISO 8601.
+        :param _note: The user-entered description of the Pin.
+        :param _color: The dominant color of the Pin’s image in hex code format.
+        :param _repin_count: Number of repins this Pin has. NOT constant.
+        :param _comment_count: Number of comments this Pin has. NOT constant.
+        :param _like_count: Number of likes this Pin has. NOT constant.
+        :param _attribution: The source data for videos, including the title, URL, provider, author name, author URL and provider name.
+
+        '''
+        json_data['created_at'] = datetime.strptime(json_data['created_at'], '%a, %d %b %Y %H:%M:%S %z')
+        super().__init__(json_data)
+
+        self._id = None
+        self._link = None
+        self._creator = None
+        self._board = None
+        self._created_at = None
+        self._note = None
+        self._color = None
+        self._attribution = None
+        self._image = None
+        self._metadata = None
+        self._repin_count = None
+        self._comment_count = None
+        self._like_count = None
+
+        self._original_link = None
+
+    @property
+    def id(self): return self.get('id')
+
+    @property
+    def link(self): return self.get('shareable_url')
+
+    @property
+    def creator(self): return self.get('pinner').get('id')
+
+    @property
+    def board(self): return self.get('board').get('id')
+
+    @property
+    def created_at(self): return self.get('created_at')
+
+    @property
+    def note(self): return self.get('description')
+
+    @property
+    def color(self): return self.get('dominant_color')
+
+    @property
+    def repin_count(self): return self.get('repin_count')
+
+    @property
+    def comment_count(self): return self.get('comment_count')
+
+    @property
+    def like_count(self): return self.get('like_count')
+
+    @property
+    def attribution(self): return self.get('attribution')
+
+    # TODO Find better represention.
+    @property
+    def image(self): return self.get('image_medium_url')
+
+    @property
+    def original_link(self): return self.get('link')
+
+
+
+
+
