@@ -35,12 +35,14 @@ class API(object):
             fields: String, optional, expected return fields,
                 will return default fields if not specified
         """
-        request = getattr(requests, method)(url, timeout=API.TIMEOUT, data=params)
+        result = getattr(requests, method)(url, timeout=API.TIMEOUT, data=params)
         # print (request.json())
-        if request.status_code in [200, 201]:
-            return request.json()['data']
+        if result.status_code in [200, 201]:
+            return result.json()
+        elif result.status_code == 404:
+            raise pypin.exceptions.PyPinContentNotFoundError(response=result)
         else:
-            raise RuntimeError('API request return status code '+str(request.status_code))
+            raise pypin.exceptions.PyPinUnhandledResponseCodeError(response=result)
 
     def get_me(self):
         """Get the authenticated user's Pinterest account info"""
