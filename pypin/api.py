@@ -1,6 +1,7 @@
 import json
 import requests
 import urllib.request
+from pypin import exceptions
 
 class API(object):
     """Pinterest API"""
@@ -40,9 +41,9 @@ class API(object):
         if result.status_code in [200, 201]:
             return result.json()
         elif result.status_code == 404:
-            raise pypin.exceptions.PyPinContentNotFoundError(response=result)
+            raise exceptions.PyPinContentNotFoundError(response=result)
         else:
-            raise pypin.exceptions.PyPinUnhandledResponseCodeError(response=result)
+            raise exceptions.PyPinUnhandledResponseCodeError(response=result)
 
     def get_me(self):
         """Get the authenticated user's Pinterest account info"""
@@ -191,5 +192,5 @@ class API(object):
             desired_attributes = [atr + '%2C' for atr in desired_attributes]
             request_url += "&fields={}".format(''.join(desired_attributes))
             request_url = request_url.rstrip('%2C')
-            # print(request_url)
+        # print(request_url)
         return API.call(request_url)
