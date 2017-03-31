@@ -418,6 +418,9 @@ class PinV3(JsonDataWrapper):
 
         self._original_link = None
 
+    def to_json(self):
+        return self._data
+
     @property
     def id(self): return self.get('id')
 
