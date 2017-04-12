@@ -262,6 +262,8 @@ class User(JsonDataWrapper):
     @property
     def image(self): return self.get('image')
 
+
+
 class BoardPins(JsonDataWrapper, Iterator):
     '''
     API Reference: https://developers.pinterest.com/docs/api/users/
@@ -462,6 +464,89 @@ class PinV3(JsonDataWrapper):
     def original_link(self): return self.get('link')
 
 
+class PinterestPaginatedModel(JsonDataWrapper, Iterator):
+    '''
+    API Reference: https://developers.pinterest.com/docs/api/users/
+    '''
+
+    def __init__(self, json_data, id, paginate_api_function=None,
+                 page_getter_func=None, page_setter_func=None, data_type=None):
+        # TODO: Confirm timezone of User._created_at.
+        # TODO: Create class container for User._image. Currently <dict>.
+        '''
+
+        :param json_data: The json that represents this object as returned by the Pinterest API.
+        :param api: The api to be used while this BoardPins object exists.
+
+        :param _id: The id of the board the pins belong to.
+        :param _api: The api stored for this BoardPins object.
+        '''
+
+        # use a list instead
+        json_data['data'] = list(json_data['data'])
+
+        super().__init__(json_data)
+        self._id = id
+        self._current = 0
+        self._high = len(self.items)
+        self._paginate_api_function = paginate_api_function
+        self._page_getter_func = page_getter_func
+        self._page_setter_func = page_setter_func
+        self._data_type = data_type
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def cursor(self):
+        return self._page_getter_func(self._data)
+
+    @property
+    def items(self):
+        return self.get('data')
+
+    def update_contents(self, new_json):
+        self._high += len(new_json['data'])
+        self.items.extend(list(new_json['data']))
+        self._page_setter_func(self._data, self._page_getter_func(new_json))
+
+    def __next__(self):
+        if self._current >= self._high:
+            if self.cursor == None:
+                # reset current so the user can iterate over the pins again
+                self._current = 0
+                raise StopIteration
+            else:
+                json_data = self._paginate_api_function(self.id, self.cursor)
+                self.update_contents(json_data)
+                return self.__next__()
+        else:
+            self._current += 1
+            if self._data_type is not None:
+                return self._data_type(self.items[self._current - 1])
+            return self.items[self._current - 1]
+
+class UserFollowersV3(PinterestPaginatedModel):
+    '''
+    API Reference: https://developers.pinterest.com/docs/api/users/
+    '''
 
 
+    def __init__(self, json_data, user_id, api_paginate_function):
+        def set_page(json, new_value):
+            json['bookmark'] = new_value
 
+        super().__init__(json_data, user_id, api_paginate_function,
+                         page_getter_func=lambda json: json.get('bookmark', None),
+                         page_setter_func=set_page)
+
+class UserFollowingV3(PinterestPaginatedModel):
+
+    def __init__(self, json_data, user_id, api_paginate_function):
+        def set_page(json, new_value):
+            json['bookmark'] = new_value
+
+        super().__init__(json_data, user_id, api_paginate_function,
+                         page_getter_func=lambda json: json.get('bookmark', None),
+                         page_setter_func=set_page)
