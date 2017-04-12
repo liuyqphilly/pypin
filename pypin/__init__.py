@@ -8,6 +8,9 @@ from pypin.models import Board
 from pypin.models import User
 from pypin.models import BoardPins
 from pypin.models import BoardPinsV3
+from pypin.models import UserFollowersV3
+from pypin.models import UserFollowingV3
+from pypin.models import UserPinsV3
 from pypin.models import PinV3
 import pypin.exceptions as exceptions
 

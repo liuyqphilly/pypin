@@ -290,7 +290,7 @@ class API(object):
         else:
             return pypin.BoardPins(API.call(request_url), board_id, self)
 
-    def get_public_board_pins_v3(self, board_id, bookmark=None, page_size=50):
+    def get_public_board_pins_v3(self, board_id, bookmark=None, page_size=100):
         '''
         EXPERIMENTAL
 
@@ -372,7 +372,7 @@ class API(object):
         # TODO: Make model
         return API.call(request_url)['data']
 
-    def get_user_followers_v3(self, user_id, bookmark=None, page_size=50):
+    def get_user_followers_v3(self, user_id, bookmark=None, page_size=100):
         if not self.v3_access_token:
             raise RuntimeError('API v3 token not provided to API client! Cannot use this method (get_user_followers).')
 
@@ -386,7 +386,7 @@ class API(object):
             return pypin.UserFollowersV3(API.call(request_url), user_id, self.get_user_followers_v3)
 
 
-    def get_user_following_v3(self, user_id, bookmark=None, page_size=50):
+    def get_user_following_v3(self, user_id, bookmark=None, page_size=100):
         if not self.v3_access_token:
             raise RuntimeError('API v3 token not provided to API client! Cannot use this method (get_user_following_v3).')
 
@@ -427,3 +427,17 @@ class API(object):
         # print(request_url)
         # TODO: Make model
         return API.call(request_url)['data']
+
+
+    def get_user_pins_v3(self, user_id, bookmark=None, page_size=100):
+        if not self.v3_access_token:
+            raise RuntimeError('API v3 token not provided to API client! Cannot use this method (get_user_following_v3).')
+
+        api_endpoint = "{}/{}/users/{}/pins/".format(self.host, 'v3', user_id)
+        # print(api_endpoint)
+        if bookmark:
+            request_url = "{}?page_size={}&bookmark={}&access_token={}".format(api_endpoint, page_size, bookmark, self.v3_access_token)
+            return API.call(request_url)
+        else:
+            request_url = "{}?page_size={}&access_token={}".format(api_endpoint, page_size, self.v3_access_token)
+            return pypin.UserPinsV3(API.call(request_url), user_id, self.get_user_pins_v3)
