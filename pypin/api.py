@@ -371,3 +371,59 @@ class API(object):
         # print(request_url)
         # TODO: Make model
         return API.call(request_url)['data']
+
+    def get_user_followers_v3(self, user_id, bookmark=None, page_size=50):
+        if not self.v3_access_token:
+            raise RuntimeError('API v3 token not provided to API client! Cannot use this method (get_user_followers).')
+
+        api_endpoint = "{}/{}/users/{}/followers/".format(self.host, 'v3', user_id)
+        # print(api_endpoint)
+        if bookmark:
+            request_url = "{}?page_size={}&bookmark={}&access_token={}".format(api_endpoint, page_size, bookmark, self.v3_access_token)
+            return API.call(request_url)
+        else:
+            request_url = "{}?page_size={}&access_token={}".format(api_endpoint, page_size, self.v3_access_token)
+            return pypin.UserFollowersV3(API.call(request_url), user_id, self.get_user_followers_v3)
+
+
+    def get_user_following_v3(self, user_id, bookmark=None, page_size=50):
+        if not self.v3_access_token:
+            raise RuntimeError('API v3 token not provided to API client! Cannot use this method (get_user_following_v3).')
+
+        api_endpoint = "{}/{}/users/{}/following/".format(self.host, 'v3', user_id)
+        # print(api_endpoint)
+        if bookmark:
+            request_url = "{}?page_size={}&bookmark={}&access_token={}".format(api_endpoint, page_size, bookmark, self.v3_access_token)
+            return API.call(request_url)
+        else:
+            request_url = "{}?page_size={}&access_token={}".format(api_endpoint, page_size, self.v3_access_token)
+            return pypin.UserFollowingV3(API.call(request_url), user_id, self.get_user_following_v3)
+
+
+    def get_board_v3(self, board_id):
+        """GET - Gets data on a user using the /api_version/boards/<board_id>/ endpoint
+
+        Parameters
+        ----------
+        board_id : string
+            The id of the board to retrieve.
+
+        Returns
+        -------
+        json_array
+            The response from Pinterest.
+
+        Raises
+        -------
+        PyPinContentNotFoundError
+            If the response code == 404, this exception will be raised along
+            with the return code of the request.
+        PyPinUnhandledResponseCodeError
+            For all other errors
+
+        """
+        api_endpoint = "{}/{}/boards/{}/".format(self.host, 'v3', board_id)
+        request_url = "{}?access_token={}".format(api_endpoint, self.v3_access_token)
+        # print(request_url)
+        # TODO: Make model
+        return API.call(request_url)['data']
